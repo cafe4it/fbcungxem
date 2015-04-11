@@ -1,0 +1,23 @@
+<template name="defaultLayout">
+    <div id="fb-root"></div>
+{{#if currentUser}}
+    <div id="wrapper">
+        {{> header}}
+        <div class="container">
+            {{> Template.dynamic template=main}}
+        </div>
+    </div>
+{{/if}}
+</template>
+
+<template name="firstLoadLayout">
+    <h2>Đang tải dữ liệu....</h2>
+</template>
+
+<template name="postList">
+    <h2>This is the postList area.</h2>
+</template>
+
+<template name="singlePost">
+    <h2>This is the singlePost area.</h2>
+</template>
