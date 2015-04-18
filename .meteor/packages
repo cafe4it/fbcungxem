@@ -17,3 +17,6 @@ frozeman:q
 raix:handlebar-helpers
 accounts-password
 accounts-base
+service-configuration
+accounts-facebook
+anti:fake

@@ -1,0 +1,161 @@
+<head>
+    <script>
+        $(document).ready(function(){
+            if(!Session.get('fbUser')) Session.set('fbUser',{});
+
+            FB_Api = function(endpoint,method,option){
+                var defer = Q.defer(),
+                        method = method || 'GET';
+                FB.api(
+                        endpoint,
+                        method,
+                        option,
+                        function (response) {
+                            if (response && response.error) {
+                                return defer.reject(response.error);
+                            }
+                            if (response && !response.error) {
+                                return defer.resolve(response)
+                            }
+                        }
+                );
+                return defer.promise;
+            }
+
+            getMe = function(callback) {
+                FB.api('/me', {fields: 'id,name,email,picture.width(120).height(120)'}, function(response){
+                    if( !response.error ) {
+                        var fbUser = Session.get('fbUser') || {};
+                        fbUser.me = response;
+                        Session.set('fbUser',fbUser);
+                        callback();
+                    } else {
+                        console.error('/me', response);
+                    }
+                });
+            }
+
+            getFriends = function(callback) {
+                FB.api('/me/friends', {fields: 'id,name,email,picture.width(120).height(120)'}, function(response){
+                    if( !response.error ) {
+                        var fbUser = Session.get('fbUser') || {};
+                        fbUser.friends = response.data;
+                        Session.set('fbUser',fbUser);
+                        callback();
+                    } else {
+                        console.error('/me/friends', response);
+                    }
+                });
+            }
+            getPermissions = function(callback) {
+                FB.api('/me/permissions', function(response){
+                    if( !response.error ) {
+                        var fbUser = Session.get('fbUser') || {};
+                        fbUser.permissions = response.data;
+                        Session.set('fbUser',fbUser);
+                        callback();
+                    } else {
+                        console.error('/me/permissions', response);
+                    }
+                });
+            }
+
+            hasPermission = function(permission) {
+                var friendCache = Session.get('fbUser');
+                for( var i in friendCache.permissions ) {
+                    if(
+                            friendCache.permissions[i].permission == permission
+                            && friendCache.permissions[i].status == 'granted' )
+                        return true;
+                }
+                return false;
+            }
+            var CONFIRM_YES = 1, CONFIRM_NO = 0;
+
+            function showConfirmationPopup(message,callback) {
+                var c = confirm(message);
+                if(c){
+                    callback(CONFIRM_YES);
+                } else {
+                    callback(CONFIRM_NO);
+                }
+            }
+
+            login = function(callback) {
+                FB.login(callback,{scope: 'user_friends,user_posts'});
+            }
+
+            reRequest= function(scope, callback) {
+                FB.login(callback, { scope: scope, auth_type:'rerequest'});
+            }
+
+            function loginCallback(response) {
+                console.log('loginCallback',response);
+                if(response.status != 'connected') {
+                    top.location.href = 'https://www.facebook.com/games/fb_xemcungnhau_com/';
+                }
+            }
+            onStatusChange = function(response) {
+                if( response.status != 'connected' ) {
+                    login(loginCallback);
+                } else {
+                    getMe(function(){
+                        getPermissions(function(){
+                            if(hasPermission('user_friends')) {
+                                getFriends(function(){
+                                    console.log('FACEBOOK USER :',Session.get('fbUser'));
+                                });
+                            } else {
+                                /*renderWelcome();
+                                showHome();*/
+                            }
+                        });
+                    });
+                }
+            }
+            function onAuthResponseChange(response) {
+                console.log('onAuthResponseChange', response);
+            }
+            window.fbAsyncInit = function() {
+                // Init the FB JS SDK
+                var initConfig = {
+                    appId: "1599903186934540",
+                    frictionlessRequests: true,
+                    status: true,
+                    version: 'v2.3'
+                };
+
+                FB.init(initConfig);
+                FB.getLoginStatus(onStatusChange);
+                /*FB.getLoginStatus(function(response){
+                    if( response.status != 'connected' ) {
+                        login(loginCallback);
+                    } else {
+                        FB.api('/me','get',{fields:'id,name,email,picture.width(120).height(120)'},function(res){
+                            if(res){
+                                var fbUser = Session.get('fbUser') || {};
+                                fbUser.me = res;
+                                Session.set('fbUser',fbUser);
+                            }
+                        })
+                    }
+                });*/
+                /*FB.Canvas.setDoneLoading();
+
+                FB.Event.subscribe('auth.authResponseChange', onAuthResponseChange);
+                FB.Event.subscribe('auth.statusChange', onStatusChange);*/
+            };
+            (function(d, s, id){
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {return;}
+                js = d.createElement(s); js.id = id;
+                js.src = "//connect.facebook.net/vi_VN/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+        })
+    </script>
+</head>
+<body>
+    <div id="fb-root"></div>
+    {{> defaultLayout}}
+</body>

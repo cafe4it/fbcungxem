@@ -6,6 +6,11 @@ fbApp = {
     AppCenterUrl : '//www.facebook.com/appcenter/' + this.Namespace
 };
 
+/*ServiceConfiguration.configurations.upsert(
+    { service: "facebook" },
+    { $set: { appId: fbApp.Id, secret: fbApp.Secret } }
+);*/
+
 fbApi = function(endpoint,method,options){
     var method = method || 'get';
     var defer = Q.defer();
@@ -56,55 +61,6 @@ fbMe = function(){
 facebookLoader = function(){
 
 
-    if(!Session.get("is Facebook JDK loaded?")) { // Load Facebook JDK only once.
-        Session.set("is Facebook JDK loaded?", true);
-
-        // See Facebook JavaScript JDK docs at: https://developers.facebook.com/docs/reference/javascript/
-        window.fbAsyncInit = function() {
-            // Init the FB JS SDK
-            var initConfig = {
-                appId: fbApp.Id,
-                frictionlessRequests: true,
-                status: true,
-                version: 'v2.3'
-            };
-
-            FB.init(initConfig);
-            FB.getLoginStatus(function(rs){
-                if (rs.status === 'connected') {
-                    FB.api('/me','get',{fields:'id,name,email,picture.width(120).height(120)'},function(res){
-                        Session.set('fbUser',res);
-                    })
-                }else{
-                    FB.login(function(){}, {scope: 'publish_actions,user_friends'});
-                }
-            })
-
-            //deferredFacebook.resolve(FB);
-
-            /*FB.Event.subscribe('auth.authResponseChange', onAuthResponseChange);
-            FB.Event.subscribe('auth.statusChange', onStatusChange);*/
-            /*fb_getLoginStatus().then(function(res){
-                if(res){
-
-                }
-            })*/
-        };
-
-        // Load the SDK's source Asynchronously
-        (function(d, debug) {
-            var js, id = 'facebook-jssdk',
-                ref = d.getElementsByTagName('script')[0];
-            if(d.getElementById(id)) {
-                return;
-            }
-            js = d.createElement('script');
-            js.id = id;
-            js.async = true;
-            js.src = "//connect.facebook.net/vi_VN/all" + (debug ? "/debug" : "") + ".js";
-            ref.parentNode.insertBefore(js, ref);
-        }(document, /*debug*/ false));
-    }
 }
 
 decorate = function(facebook) {
